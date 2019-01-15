@@ -1,0 +1,14 @@
+version: "3"
+
+services:
+  postgres:
+    container_name: sento_api_db
+    image: geographica/postgis:spry_sparrow
+    volumes:
+      - sento-data:/data
+      - ./db:/src/db
+    environment:
+      LOCALE: es_ES
+
+volumes:
+  sento-data:

@@ -1,0 +1,10 @@
+version: "3"
+
+# Testing environment
+# Default user/password values:
+# postgres/postgres sento/sento
+
+services:
+  postgres:
+    ports:
+      - 5432:5432
