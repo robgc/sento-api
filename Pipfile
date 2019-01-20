@@ -9,6 +9,8 @@ autopep8 = '*'
 rope = '*'
 
 [packages]
+alembic = ">=1.0.6,<1.1"
+psycopg2 = "*"
 
 [requires]
 python_version = "3.7"

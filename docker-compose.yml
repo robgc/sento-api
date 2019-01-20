@@ -6,9 +6,10 @@ services:
     image: geographica/postgis:spry_sparrow
     volumes:
       - sento-data:/data
-      - ./db:/src/db
-    environment:
-      LOCALE: es_ES
+      - ./sento_api/database/init.sql:/src/init.sql
+    env_file:
+      - db.env
 
 volumes:
   sento-data:
+    external: true

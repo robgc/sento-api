@@ -30,5 +30,10 @@ CREATE DATABASE sento WITH OWNER :sento_user;
 -- Activate PostGIS extension
 CREATE EXTENSION postgis;
 
--- Execute DDL script
-\ir ddl.sql
+-- Connect as sento's db owner
+\c sento :sento_user
+
+-- Create necessary schemas
+BEGIN;
+    CREATE SCHEMA IF NOT EXISTS data;
+COMMIT;
