@@ -14,7 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from sqlalchemy import BigInteger, Column, Integer, SmallInteger
+from sqlalchemy import Column, Integer, SmallInteger, Text
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 
 from sento_api.database.models.base import Base, SCHEMAS
@@ -28,4 +28,4 @@ class Rankings(Base):
     ranking_no = Column(SmallInteger, nullable=False, primary_key=True)
     woeid = Column(Integer, nullable=False)
     tweet_volume = Column(Integer)
-    topic_id = Column(BigInteger, nullable=False, index=True, primary_key=True)
+    topic_id = Column(Text, nullable=False, index=True, primary_key=True)

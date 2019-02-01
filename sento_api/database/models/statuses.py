@@ -27,4 +27,4 @@ class Statuses(Base):
     wrote_at = Column(TIMESTAMP, nullable=False, index=True)
     fetched_at = Column(TIMESTAMP, nullable=False)
     content = Column(Text, nullable=False)
-    topic_id = Column(BigInteger, nullable=False, index=True)
+    topic_id = Column(Text, nullable=False, index=True)

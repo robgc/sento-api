@@ -14,7 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from sqlalchemy import BigInteger, Column, Text
+from sqlalchemy import Column, Text
 
 from sento_api.database.models.base import Base, SCHEMAS
 
@@ -22,7 +22,6 @@ from sento_api.database.models.base import Base, SCHEMAS
 class Topics(Base):
     __tablename__ = 'topics'
     __table_args__ = {'schema': SCHEMAS['data']}
-    id = Column(BigInteger, primary_key=True)
-    name = Column(Text, nullable=False, index=True)
+    id = Column(Text, nullable=False, primary_key=True)
     url = Column(Text, nullable=False)
     query_str = Column(Text, nullable=False)
