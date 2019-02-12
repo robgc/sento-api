@@ -4,6 +4,7 @@ services:
   postgres:
     container_name: sento-db
     image: geographica/postgis:spry_sparrow
+    restart: unless-stopped
     volumes:
       - sento-data:/data
       - ./sento_api/database/init.sql:/src/init.sql
