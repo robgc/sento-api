@@ -91,7 +91,7 @@ def run_migrations_offline():
         literal_binds=True,
         include_schemas=True,
         include_object=_include_object,
-        version_table_schema='data'
+        version_table_schema='public'
     )
 
     with context.begin_transaction():
@@ -113,7 +113,7 @@ def run_migrations_online():
             target_metadata=target_metadata,
             include_schemas=True,
             include_object=_include_object,
-            version_table_schema='data'
+            version_table_schema='public'
         )
 
         with context.begin_transaction():

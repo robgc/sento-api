@@ -13,9 +13,25 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-# These imports are needed for creating migrations
+from geoalchemy2 import Geometry
+from sqlalchemy import Column, Index, Integer
 
-from sento_api.database.models.rankings import Rankings  # noqa
-from sento_api.database.models.statuses import Statuses  # noqa
-from sento_api.database.models.topics import Topics  # noqa
-from sento_api.database.models.locations import Locations  # noqa
+from sento_api.database.models.base import SCHEMAS, Base
+
+
+class Locations(Base):
+    __tablename__ = 'locations'
+    __table_args__ = (
+        Index('idx_locations_the_geom', 'the_geom', postgresql_using='gist'),
+        Index('idx_locations_coords', 'coords', postgresql_using='gist'),
+        {'schema': SCHEMAS['data']}
+    )
+    id = Column(Integer, primary_key=True)
+    the_geom = Column(
+        Geometry(geometry_type='POLYGON', srid=4326, spatial_index=False),
+        nullable=False
+    )
+    coords = Column(
+        Geometry(geometry_type='POINT', srid=4326, spatial_index=False),
+        nullable=False
+    )

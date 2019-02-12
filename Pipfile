@@ -10,7 +10,8 @@ rope = '*'
 
 [packages]
 alembic = ">=1.0.6,<1.1"
-psycopg2 = "*"
+psycopg2 = "<2.8"
+GeoAlchemy2 = ">=0.5.0,<0.6"
 
 [requires]
 python_version = "3.7"
