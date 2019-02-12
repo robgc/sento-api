@@ -14,7 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from sqlalchemy import BigInteger, Column, Text
+from sqlalchemy import Integer, BigInteger, Column, Text
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 
 from sento_api.database.models.base import Base, SCHEMAS
@@ -27,4 +27,5 @@ class Statuses(Base):
     wrote_at = Column(TIMESTAMP, nullable=False, index=True)
     fetched_at = Column(TIMESTAMP, nullable=False)
     content = Column(Text, nullable=False)
-    topic_id = Column(Text, nullable=False, index=True)
+    topic_id = Column(Text, primary_key=True)
+    woeid = Column(Integer, primary_key=True)

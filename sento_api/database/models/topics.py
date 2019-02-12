@@ -22,6 +22,6 @@ from sento_api.database.models.base import Base, SCHEMAS
 class Topics(Base):
     __tablename__ = 'topics'
     __table_args__ = {'schema': SCHEMAS['data']}
-    id = Column(Text, nullable=False, primary_key=True)
+    id = Column(Text, primary_key=True)
     url = Column(Text, nullable=False)
     query_str = Column(Text, nullable=False)
