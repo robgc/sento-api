@@ -25,7 +25,10 @@ class Locations(Base):
     __tablename__ = 'locations'
     __table_args__ = (
         Index('idx_locations_the_geom', 'the_geom', postgresql_using='gist'),
-        Index('idx_locations_coords', 'coords', postgresql_using='gist'),
+        Index('idx_locations_the_geom_point',
+              'the_geom_point', postgresql_using='gist'),
+        Index('idx_locations_the_geom_bcircle_centroid',
+              'the_geom_bcircle_centroid', postgresql_using='gist'),
         {'schema': SCHEMAS['data']}
     )
     id = Column(Integer, primary_key=True)
@@ -35,50 +38,42 @@ class Locations(Base):
         Geometry(geometry_type='MULTIPOLYGON', srid=4326, spatial_index=False),
         nullable=False
     )
-    coords = Column(
+    the_geom_point = Column(
         Geometry(geometry_type='POINT', srid=4326, spatial_index=False),
         nullable=False
     )
-    bounding_circle_coords = Column(
+    the_geom_bcircle_centroid = Column(
         Geometry(geometry_type='POINT', srid=4326, spatial_index=False),
         nullable=False
     )
-    bounding_circle_radius = Column(Float, nullable=False)
+    bcircle_radius = Column(Float, nullable=False)
 
-
-# create view tmp1 as
-# select
-#   min_circle."id",
-#   min_circle.name,
-#   min_circle.center,
-#   ST_DistanceSphere(min_circle.center, min_circle.perimeter_point) as distance,
-#   min_circle.the_geom
-# from (
-#   SELECT
-#     "id",
-#     "name",
-#     ST_MakeValid(ST_MinimumBoundingCircle(the_geom)) AS the_geom,
-#     ST_Centroid(ST_MakeValid(ST_MinimumBoundingCircle(the_geom))) as center,
-#   	ST_PointN(ST_Boundary(ST_MakeValid(ST_MinimumBoundingCircle(the_geom))), 1) as perimeter_point
-#   FROM "data"."locations"
-# ) As "min_circle"
-
-# TODO: FINISH PROCEDURE
 
 bounding_circle_plgsql = """
 DECLARE
-    center geometry;
-    radius double precision;
+    bounding_circle geometry;
 BEGIN
-    SELECT INTO center FROM SELECT
+    bounding_circle := ST_MakeValid(ST_MinimumBoundingCircle(NEW.the_geom));
+    NEW.center := ST_Centroid(bounding_circle);
+    NEW.radius := ST_DistanceSphere(
+        center, ST_PointN(ST_Boundary(bounding_circle), 1)
+    );
+    RETURN NEW;
 END;
 """
 
-
 Procedure(
-    name='calculate_location_bounding_circle',
+    name='calculate_bcircle_cols',
     return_type='trigger',
     function_decl=bounding_circle_plgsql
 )
 
-Trigger()
+Trigger(
+    name='trigger_calculate_bcircle_cols',
+    when='BEFORE',
+    event='INSERT OR UPDATE',
+    table_name='locations',
+    function_type='FUNCTION',
+    function_name='calculate_bcircle_cols',
+    function_args=list()
+)
