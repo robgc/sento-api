@@ -14,11 +14,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from geoalchemy2 import Geometry
-from sqlalchemy import Column, Index, Integer, Text, Float
+from sqlalchemy import Column, Float, Index, Integer, Text
 
 from sento_api.database.models.base import SCHEMAS, Base
-from sento_api.database.operations.procedure import Procedure
-from sento_api.database.operations.trigger import Trigger
 
 
 class Locations(Base):
@@ -47,33 +45,3 @@ class Locations(Base):
         nullable=False
     )
     bcircle_radius = Column(Float, nullable=False)
-
-
-bounding_circle_plgsql = """
-DECLARE
-    bounding_circle geometry;
-BEGIN
-    bounding_circle := ST_MakeValid(ST_MinimumBoundingCircle(NEW.the_geom));
-    NEW.center := ST_Centroid(bounding_circle);
-    NEW.radius := ST_DistanceSphere(
-        center, ST_PointN(ST_Boundary(bounding_circle), 1)
-    );
-    RETURN NEW;
-END;
-"""
-
-Procedure(
-    name='calculate_bcircle_cols',
-    return_type='trigger',
-    function_decl=bounding_circle_plgsql
-)
-
-Trigger(
-    name='trigger_calculate_bcircle_cols',
-    when='BEFORE',
-    event='INSERT OR UPDATE',
-    table_name='locations',
-    function_type='FUNCTION',
-    function_name='calculate_bcircle_cols',
-    function_args=list()
-)

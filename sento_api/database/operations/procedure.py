@@ -47,7 +47,7 @@ def create_procedure(operations, operation):
         CREATE FUNCTION {operation.target.name} ({', '.join(operation.target.params)})
         RETURNS {operation.target.return_type} AS $$
         {operation.target.function_decl}
-        $$ LANGUAGE plpgsql;
+        $$ LANGUAGE plpgsql
         '''  # noqa
     )
 
