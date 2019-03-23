@@ -14,7 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from sqlalchemy import Integer, BigInteger, Column, Text
+from sqlalchemy import Integer, BigInteger, Column, Text, SmallInteger
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 
 from sento_api.database.models.base import Base, SCHEMAS
@@ -27,5 +27,7 @@ class Statuses(Base):
     wrote_at = Column(TIMESTAMP, nullable=False, index=True)
     fetched_at = Column(TIMESTAMP, nullable=False)
     content = Column(Text, nullable=False)
+    # -1: Negative || 0: Neutral || 1: Positive || NULL: Not analyzed
+    sentiment = Column(SmallInteger, nullable=True, index=True)
     topic_id = Column(Text, primary_key=True)
     woeid = Column(Integer, primary_key=True)
