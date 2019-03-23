@@ -62,12 +62,13 @@ def _get_url():
 
     db_host = db_config['host']
     db_port = db_config['port']
+    db_name = db_config['database']
     db_user = db_config['user']
     db_password = db_config['password']
 
     return (
         f'postgresql+psycopg2://{db_user}:{db_password}@'
-        f'{db_host}:{db_port}/sento'
+        f'{db_host}:{db_port}/{db_name}'
     )
 
 

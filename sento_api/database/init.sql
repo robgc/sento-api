@@ -18,20 +18,21 @@
 
 -- Read config from environment
 \set sento_user `echo ${SENTO_DB_USER:-sento}`
-\set password `echo ${SENTO_DB_PASSWD:-sento}`
+\set sento_password `echo ${SENTO_DB_PASSWD:-sento}`
+\set sento_db_name `echo ${SENTO_DB_NAME:-sento}`
 
 -- Create user and database
-CREATE USER :sento_user WITH PASSWORD :'password';
-CREATE DATABASE sento WITH OWNER :sento_user;
+CREATE USER :sento_user WITH PASSWORD :'sento_password';
+CREATE DATABASE :sento_db_name WITH OWNER :sento_user;
 
 -- Connect to recently created database
-\c sento
+\c :sento_db_name
 
 -- Activate PostGIS extension
 CREATE EXTENSION postgis;
 
 -- Connect as sento's db owner
-\c sento :sento_user
+\c :sento_db_name :sento_user
 
 -- Create necessary schemas
 BEGIN;
