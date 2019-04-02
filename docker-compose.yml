@@ -1,4 +1,4 @@
-version: "3.6"
+version: "3.5"
 
 services:
   postgres:
@@ -9,6 +9,15 @@ services:
       - sento-data:/data
       - ./sento_api/database/init.sql:/src/init.sql
     env_file: db.env
+    networks:
+      sento-net:
+        aliases:
+          - sento-db
+
+  sento-api:
+    container_name: sento-api
+    build:
+      context: .
     networks:
       - sento-net
 
