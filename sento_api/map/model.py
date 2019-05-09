@@ -13,45 +13,41 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from sento_api.db_connection import get_conn_pool
+from sento_api.utils import execute_fetch_query
 
 
 async def get_active_locations():
-    results = None
-    pool = await get_conn_pool()
-    async with pool.acquire() as conn:
-        results = await conn.fetch(
-            """
-            WITH active_locations as (
-              SELECT DISTINCT
-                woeid
-              FROM
-                data.rankings
-              WHERE
-                ranking_ts BETWEEN (now() - interval '12 hours') AND now()
-            ), active_locations_as_geojson as (
-              SELECT
-                jsonb_build_object(
-                  'type', 'Feature',
-                  'id', locs.id,
-                  'geometry', ST_AsGeoJSON(locs.the_geom_point)::jsonb,
-                  'properties', json_build_object(
-                    'name', locs.name,
-                    'osm_name', locs.osm_name
-                  )
-                ) AS feature
-              FROM
-                active_locations al
-                JOIN data.locations locs ON al.woeid = locs.id
-            )
-
-            SELECT
-              jsonb_build_object(
-                'type', 'FeatureCollection',
-                'features', jsonb_agg(feature)
+    return execute_fetch_query(
+        """
+        WITH active_locations as (
+          SELECT DISTINCT
+            woeid
+          FROM
+            data.rankings
+          WHERE
+            ranking_ts BETWEEN (now() - interval '12 hours') AND now()
+        ), active_locations_as_geojson as (
+          SELECT
+            jsonb_build_object(
+              'type', 'Feature',
+              'id', locs.id,
+              'geometry', ST_AsGeoJSON(locs.the_geom_point)::jsonb,
+              'properties', json_build_object(
+                'name', locs.name,
+                'osm_name', locs.osm_name
               )
-            FROM
-              active_locations_as_geojson
-            """
+            ) AS feature
+          FROM
+            active_locations al
+            JOIN data.locations locs ON al.woeid = locs.id
         )
-    return results
+
+        SELECT
+          jsonb_build_object(
+            'type', 'FeatureCollection',
+            'features', jsonb_agg(feature)
+          )
+        FROM
+          active_locations_as_geojson
+        """
+    )
