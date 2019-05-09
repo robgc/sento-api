@@ -15,15 +15,22 @@
 
 import uvicorn
 from starlette.applications import Starlette
+from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import PlainTextResponse
 
-from sento_api.settings import get_config
 from sento_api.map.routes import app as map_routes
+from sento_api.reports.routes import app as reports_routes
+from sento_api.settings import get_config
+from sento_api.trends.routes import app as trends_routes
 
 app_settings = get_config()
 app = Starlette(debug=app_settings.DEBUG_MODE)
 
+app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'])
+
 app.mount('/map', map_routes)
+app.mount('/trends', trends_routes)
+app.mount('/reports', reports_routes)
 
 
 @app.route('/')
