@@ -29,5 +29,5 @@ class Statuses(Base):
     content = Column(Text, nullable=False)
     # -1: Negative || 0: Neutral || 1: Positive || NULL: Not analyzed
     sentiment = Column(SmallInteger, nullable=True, index=True)
-    topic_id = Column(Text, primary_key=True)
-    woeid = Column(Integer, primary_key=True)
+    topic_id = Column(Text, primary_key=True, index=True)
+    woeid = Column(Integer, primary_key=True, index=True)

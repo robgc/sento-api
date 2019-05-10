@@ -23,8 +23,8 @@ from sento_api.database.models.base import Base, SCHEMAS
 class Rankings(Base):
     __tablename__ = 'rankings'
     __table_args__ = {'schema': SCHEMAS['data']}
-    ranking_ts = Column(TIMESTAMP, primary_key=True)
-    ranking_no = Column(SmallInteger, primary_key=True)
-    woeid = Column(Integer, nullable=False, index=True)
+    ranking_ts = Column(TIMESTAMP, primary_key=True, index=True)
+    ranking_no = Column(SmallInteger, primary_key=True, index=True)
+    woeid = Column(Integer, primary_key=True, index=True)
     tweet_volume = Column(Integer)
-    topic_id = Column(Text, primary_key=True)
+    topic_id = Column(Text, primary_key=True, index=True)

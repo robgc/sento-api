@@ -79,7 +79,7 @@ def upgrade():
     sa.Column('woeid', sa.Integer(), nullable=False),
     sa.Column('tweet_volume', sa.Integer(), nullable=True),
     sa.Column('topic_id', sa.Text(), nullable=False),
-    sa.PrimaryKeyConstraint('ranking_ts', 'ranking_no', 'topic_id'),
+    sa.PrimaryKeyConstraint('ranking_ts', 'ranking_no', 'woeid', 'topic_id'),
     schema='data'
     )
 
