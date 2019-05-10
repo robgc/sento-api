@@ -14,14 +14,22 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from sqlalchemy import Column, Text
+from sqlalchemy import Column, Text, Index
 
 from sento_api.database.models.base import Base, SCHEMAS
 
 
 class Topics(Base):
     __tablename__ = 'topics'
-    __table_args__ = {'schema': SCHEMAS['data']}
+    __table_args__ = (
+        Index(
+            'ix_data_topics_id',
+            'id',
+            postgresql_using='gist',
+            postgresql_ops={'id': 'gist_trgm_ops'}
+        ),
+        {'schema': SCHEMAS['data']}
+    )
     id = Column(Text, primary_key=True)
     url = Column(Text, nullable=False)
     query_str = Column(Text, nullable=False)

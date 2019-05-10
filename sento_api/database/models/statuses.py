@@ -14,7 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from sqlalchemy import Integer, BigInteger, Column, Text, SmallInteger
+from sqlalchemy import Integer, BigInteger, Column, Text, SmallInteger, Index
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 
 from sento_api.database.models.base import Base, SCHEMAS
@@ -22,7 +22,15 @@ from sento_api.database.models.base import Base, SCHEMAS
 
 class Statuses(Base):
     __tablename__ = 'statuses'
-    __table_args__ = {'schema': SCHEMAS['data']}
+    __table_args__ = (
+        Index(
+            'ix_gist_data_statuses_topic_id',
+            'topic_id',
+            postgresql_using='gist',
+            postgresql_ops={'topic_id': 'gist_trgm_ops'}
+        ),
+        {'schema': SCHEMAS['data']}
+    )
     id = Column(BigInteger, primary_key=True)
     wrote_at = Column(TIMESTAMP, nullable=False, index=True)
     fetched_at = Column(TIMESTAMP, nullable=False)

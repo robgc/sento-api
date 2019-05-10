@@ -31,6 +31,9 @@ CREATE DATABASE :sento_db_name WITH OWNER :sento_user;
 -- Activate PostGIS extension
 CREATE EXTENSION postgis;
 
+-- Activate trigram module for text search
+CREATE EXTENSION pg_tgrm;
+
 -- Connect as sento's db owner
 \c :sento_db_name :sento_user
 

@@ -14,7 +14,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-from sqlalchemy import Column, Integer, SmallInteger, Text
+from sqlalchemy import Column, Integer, SmallInteger, Text, Index
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 
 from sento_api.database.models.base import Base, SCHEMAS
@@ -22,7 +22,15 @@ from sento_api.database.models.base import Base, SCHEMAS
 
 class Rankings(Base):
     __tablename__ = 'rankings'
-    __table_args__ = {'schema': SCHEMAS['data']}
+    __table_args__ = (
+        Index(
+            'ix_gist_data_rankings_topic_id',
+            'topic_id',
+            postgresql_using='gist',
+            postgresql_ops={'topic_id': 'gist_trgm_ops'}
+        ),
+        {'schema': SCHEMAS['data']}
+    )
     ranking_ts = Column(TIMESTAMP, primary_key=True, index=True)
     ranking_no = Column(SmallInteger, primary_key=True, index=True)
     woeid = Column(Integer, primary_key=True, index=True)
