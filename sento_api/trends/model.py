@@ -23,10 +23,13 @@ async def get_top_trends():
           topic_id,
           ranking_no
         FROM
-          data.rankings
+          data.rankings rankings
         WHERE
           ranking_no BETWEEN 1 AND 10
-          AND ranking_ts BETWEEN (now() - interval '12 hours') AND now()
+          AND ranking_ts >= (
+            (SELECT MAX(ranking_ts) FROM data.rankings)
+            - interval '12 hours'
+          )
         ORDER BY
           ranking_no DESC
         LIMIT 15
@@ -50,6 +53,10 @@ async def get_current_trends_for_location(woeid):
             data.rankings
           WHERE
             woeid = $1
+            AND ranking_ts >= (
+              (SELECT MAX(ranking_ts) FROM data.rankings)
+              - interval '12 hours'
+            )
           ORDER BY
             ranking_ts desc
           LIMIT 50
@@ -61,56 +68,70 @@ async def get_current_trends_for_location(woeid):
     )
 
 
-async def get_trends_evolution_for_location(woeid):
+async def get_trends_evolution_in_location(woeid):
     return await execute_fetch_query(
         """
-        WITH ranking_ts_diffs AS (
-          SELECT
-            ranking_ts,
-            ranking_ts - lag(ranking_ts, 1) OVER (ORDER BY ranking_ts ASC)
-              AS ts_diff
-          FROM
-            data.rankings
-          WHERE
-            woeid = $1
-            AND ranking_ts BETWEEN (now() - interval '12 hours') AND now()
-          ORDER BY
-            ranking_ts ASC
-        ), key_ranking_ts AS (
-          SELECT
-            ranking_ts,
-            lead(ranking_ts, 1) OVER (ORDER BY ranking_ts ASC)
-              AS ranking_ts_next
-          FROM
-            ranking_ts_diffs
-          WHERE
-            ts_diff IS NULL
-            OR extract('minute' FROM ts_diff)::int >= 10
-        )
-
         SELECT
-          to_char(
-            key_timestamps.ranking_ts at time zone 'UTC',
-              'YYYY-MM-DD"T"HH24:MI:SS"Z"'
-          ) as ranking_ts,
+          to_char(ranking_ts, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as "timestamp",
           json_agg(
             json_build_object(
-              'trend', ranking.topic_id,
-              'number', ranking.ranking_no
+              'trend', topic_id,
+              'number', ranking_no
             )
-            ORDER BY ranking.ranking_no ASC
-          ) AS "ts_ranking"
+            ORDER BY ranking_no ASC
+          ) AS "trendsPositions"
         FROM
-          key_ranking_ts key_timestamps
-          JOIN data.rankings ranking ON (
-            (ranking.ranking_ts >= key_timestamps.ranking_ts
-              AND ranking.ranking_ts < key_timestamps.ranking_ts_next)
-            AND (ranking.woeid = $1)
+          data.rankings
+        WHERE
+          woeid = $1
+          AND ranking_ts >= (
+            (SELECT MAX(ranking_ts) FROM data.rankings)
+            - interval '12 hours'
           )
         GROUP BY
-          key_timestamps.ranking_ts
-        ORDER BY
-          key_timestamps.ranking_ts ASC;
+          ranking_ts
         """,
         woeid
+    )
+
+
+async def get_trend_evolution_in_location(trend_id, woeid):
+    return await execute_fetch_query(
+        """
+        SELECT
+          json_agg(
+            json_build_object(
+              'timestamp', to_char(ranking_ts, 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+              'number', ranking_no
+            )
+            ORDER BY ranking_ts ASC
+          )
+        FROM
+          data.rankings
+        WHERE
+          topic_id = $1
+          AND woeid = $2
+        GROUP BY
+          topic_id,
+          woeid
+        """,
+        trend_id,
+        woeid,
+        fetch_row=True
+    )
+
+
+async def search_trends_by_name(trend_name):
+    return await execute_fetch_query(
+        """
+        SELECT
+          id AS trend,
+          id <-> $1 AS distance
+        FROM
+          data.topics
+        ORDER BY
+          distance ASC
+        LIMIT 20
+        """,
+        trend_name
     )

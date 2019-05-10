@@ -13,11 +13,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from starlette.routing import Router
-from starlette.responses import JSONResponse
-from sento_api.trends import model
-from sento_api import utils
 import json
+
+from starlette.responses import JSONResponse, PlainTextResponse
+from starlette.routing import Router
+
+from sento_api import utils
+from sento_api.trends import model
 
 app = Router()
 
@@ -41,12 +43,40 @@ async def get_trends_for_location(request):
 
 
 @app.route('/evolution/{woeid:int}')
-async def get_trends_evolution_for_location(request):
+async def get_trends_evolution_in_location(request):
     woeid, err_resp = await utils.process_req_woeid(request)
     if err_resp:
         return err_resp
 
-    evol_rows = await model.get_trends_evolution_for_location(woeid)
+    evol_rows = await model.get_trends_evolution_in_location(woeid)
     return JSONResponse(
-        {row[0]: json.loads(row[1]) for row in evol_rows}
+        [dict(timestamp=row[0], positions=json.loads(row[1]))
+         for row in evol_rows]
     )
+
+
+@app.route('/evolution/{woeid:int}/{trend_id}')
+async def get_trend_evolution_in_location(request):
+    woeid, err_resp = await utils.process_req_woeid(request)
+    if err_resp:
+        return err_resp
+
+    trend_id, trend_err_resp = await utils.process_req_trend(request)
+    if trend_err_resp:
+        return trend_err_resp
+
+    evol_data = await model.get_trend_evolution_in_location(trend_id, woeid)
+
+    return PlainTextResponse(evol_data[0], media_type='application/json')
+
+
+@app.route('/search/{trend_name}')
+async def search_trends_by_name(request):
+    trend_name = request.path_params.get('trend_name')
+
+    search_rows = await model.search_trends_by_name(trend_name)
+
+    if len(search_rows):
+        return JSONResponse(dict(search_rows))
+    else:
+        return JSONResponse(dict(), status_code=404)
