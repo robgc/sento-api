@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from dateutil import parser, tz
+from dateutil import parser
 from starlette.responses import JSONResponse
 from starlette.routing import Router
 
@@ -31,13 +31,12 @@ async def get_sentiment_report_by_location_and_trend(request):
 
     trend_id, trend_err_resp = await utils.process_req_trend(request)
     if trend_err_resp:
-        return err_resp
+        return trend_err_resp
 
-    timestamp = request.path_params.get('timestamp', None)
+    req_timestamp = request.path_params.get('timestamp', None)
 
     timestamp_utc = (parser
-                     .parse(timestamp)
-                     .astimezone(tz.tzutc())
+                     .parse(req_timestamp)
                      .replace(tzinfo=None))
 
     sentiment_data = await model.get_sentiment_data(
@@ -45,3 +44,18 @@ async def get_sentiment_report_by_location_and_trend(request):
     )
 
     return JSONResponse({row[0]: row[1] for row in sentiment_data})
+
+
+@app.route('/trend/{trend_id}/{woeid:int}')
+async def get_trend_metadata(request):
+    woeid, err_resp = await utils.process_req_woeid(request)
+    if err_resp:
+        return err_resp
+
+    trend_id, trend_err_resp = await utils.process_req_trend(request)
+    if trend_err_resp:
+        return trend_err_resp
+
+    trend_metadata = await model.get_trend_metadata(woeid, trend_id)
+
+    return JSONResponse(dict(trend_metadata))

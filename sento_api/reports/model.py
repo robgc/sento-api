@@ -19,54 +19,85 @@ from sento_api.utils import execute_fetch_query
 async def get_sentiment_data(woeid, trend_id, timestamp):
     return await execute_fetch_query(
         """
-        WITH ranking_ts_diffs AS (
-          SELECT
-            ranking_ts,
-            ranking_ts - lag(ranking_ts, 1) OVER (ORDER BY ranking_ts ASC)
-              AS ts_diff
-          FROM
-            data.rankings
-          WHERE
-            woeid = $1
-          ORDER BY
-            ranking_ts ASC
-        ), key_ranking_ts AS (
+        WITH key_ranking_stamps AS (
           SELECT
             ranking_ts,
             coalesce(
               lead(ranking_ts, 1) OVER (ORDER BY ranking_ts ASC),
-              now() AT TIME ZONE 'UTC'
+              now() at time zone 'UTC'
             ) AS ranking_ts_next
           FROM
-            ranking_ts_diffs
+            data.rankings
           WHERE
-            ts_diff IS NULL
-            OR extract('minute' FROM ts_diff)::int >= 10
-        ), key_ranking_ts_limit AS (
-          SELECT
-            ranking_ts_next AS "limit"
-          FROM
-            key_ranking_ts
-          WHERE
-            date_trunc('second', ranking_ts) = date_trunc(
-                'second', $3::timestamp without time zone)
+            woeid = $1
+          GROUP BY
+            ranking_ts
+          ORDER BY
+            ranking_ts ASC
         )
 
         SELECT
-          sts.sentiment,
-          count(sts.sentiment) AS total_count
+          CASE
+            WHEN statuses.sentiment = 1 THEN 'positive'
+            WHEN statuses.sentiment = 0 THEN 'neutral'
+            ELSE 'negative'
+          END AS sentiment,
+          count(statuses.sentiment) AS total_count
         FROM
-          data.statuses sts
-          JOIN key_ranking_ts_limit key_ts_limit ON (
-            sts.wrote_at <= key_ts_limit. "limit"
+          data.statuses statuses
+          JOIN key_ranking_stamps key_stamps ON (
+            key_stamps.ranking_ts = $3
+            AND statuses.wrote_at < key_stamps.ranking_ts_next
           )
         WHERE
-          sts.woeid = $1
+          statuses.woeid = $1
           AND topic_id = $2
         GROUP BY
-          sts.sentiment
+          statuses.sentiment
         """,
         woeid,
         trend_id,
         timestamp
+    )
+
+
+async def get_trend_metadata(woeid, trend_id):
+    return await execute_fetch_query(
+        """
+        WITH statuses_metadata AS (
+          SELECT
+            count(*) AS "processedTweets"
+          FROM
+            data.statuses
+          WHERE
+            topic_id = $2
+            AND woeid = $1
+        ), trends_metadata AS (
+          SELECT
+            tweet_volume AS "lastTweetVolume",
+            to_char(
+              ranking_ts,
+              'YYYY-MM-DD"T"HH24:MI:SS"Z"'
+            ) AS "lastTrendCaptureTimestamp"
+          FROM
+            data.rankings
+          WHERE
+            topic_id = $2
+            AND woeid = $1
+          ORDER BY
+            ranking_ts DESC
+          LIMIT 1
+        )
+
+        SELECT
+          sm."processedTweets",
+          tm."lastTweetVolume",
+          tm."lastTrendCaptureTimestamp"
+        FROM
+          statuses_metadata sm
+          JOIN trends_metadata tm ON TRUE
+        """,
+        woeid,
+        trend_id,
+        fetch_row=True
     )
