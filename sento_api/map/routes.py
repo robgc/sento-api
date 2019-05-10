@@ -23,4 +23,4 @@ app = Router()
 @app.route('/active')
 async def active_locations(request):
     query_results = await model.get_active_locations()
-    return PlainTextResponse(query_results[0][0], media_type='application/json')
+    return PlainTextResponse(query_results[0], media_type='application/json')
