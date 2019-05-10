@@ -25,7 +25,10 @@ async def get_active_locations():
           FROM
             data.rankings
           WHERE
-            ranking_ts BETWEEN (now() - interval '12 hours') AND now()
+            ranking_ts >= (
+              (SELECT MAX(ranking_ts) FROM data.rankings)
+              - interval '12 hours'
+            )
         ), active_locations_as_geojson as (
           SELECT
             jsonb_build_object(
@@ -49,5 +52,6 @@ async def get_active_locations():
           )
         FROM
           active_locations_as_geojson
-        """
+        """,
+        fetch_row=True
     )
