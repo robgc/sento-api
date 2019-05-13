@@ -77,6 +77,6 @@ async def search_trends_by_name(request):
     search_rows = await model.search_trends_by_name(trend_name)
 
     if len(search_rows):
-        return JSONResponse(dict(search_rows))
+        return JSONResponse([dict(row) for row in search_rows])
     else:
         return JSONResponse(dict(), status_code=404)

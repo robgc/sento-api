@@ -17,7 +17,7 @@ from sento_api.utils import execute_fetch_query
 
 
 async def get_active_locations():
-    return execute_fetch_query(
+    return await execute_fetch_query(
         """
         WITH active_locations as (
           SELECT DISTINCT
