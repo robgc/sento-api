@@ -16,7 +16,7 @@
 from sento_api.utils import execute_fetch_query
 
 
-async def get_sentiment_data(woeid, trend_id, timestamp):
+async def get_sentiment_data_at_timestamp(woeid, trend_id, timestamp):
     return await execute_fetch_query(
         """
         WITH key_ranking_stamps AS (
@@ -58,6 +58,29 @@ async def get_sentiment_data(woeid, trend_id, timestamp):
         woeid,
         trend_id,
         timestamp
+    )
+
+
+async def get_sentiment_data(woeid, trend_id):
+    return await execute_fetch_query(
+        """
+        SELECT
+          CASE
+            WHEN sentiment = 1 THEN 'positive'
+            WHEN sentiment = 0 THEN 'neutral'
+            ELSE 'negative'
+          END AS sentiment,
+          count(sentiment) AS "tweetCount"
+        FROM
+          data.statuses
+        WHERE
+          woeid = $1
+          AND topic_id = $2
+        GROUP BY
+          sentiment
+        """,
+        woeid,
+        trend_id,
     )
 
 

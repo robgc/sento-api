@@ -23,8 +23,33 @@ from sento_api.reports import model
 app = Router()
 
 
-@app.route('/sentiment/{woeid:int}/{trend_id}/{timestamp}')
+@app.route('/sentiment/{woeid:int}/{trend_id}')
 async def get_sentiment_report_by_location_and_trend(request):
+    woeid, err_resp = await utils.process_req_woeid(request)
+    if err_resp:
+        return err_resp
+
+    trend_id, trend_err_resp = await utils.process_req_trend(request)
+    if trend_err_resp:
+        return trend_err_resp
+
+    sentiment_data = await model.get_sentiment_data(woeid, trend_id)
+    response_data = {
+        'positive': 0,
+        'negative': 0,
+        'neutral': 0,
+        'total': 0
+    }
+
+    for row in sentiment_data:
+        response_data[row.get('sentiment')] = row.get('tweetCount')
+        response_data['total'] += row.get('tweetCount')
+
+    return JSONResponse(response_data)
+
+
+@app.route('/sentiment/{woeid:int}/{trend_id}/{timestamp}')
+async def get_sentiment_report_by_location_and_trend_at_timestamp(request):
     woeid, err_resp = await utils.process_req_woeid(request)
     if err_resp:
         return err_resp
@@ -39,7 +64,7 @@ async def get_sentiment_report_by_location_and_trend(request):
                      .parse(req_timestamp)
                      .replace(tzinfo=None))
 
-    sentiment_data = await model.get_sentiment_data(
+    sentiment_data = await model.get_sentiment_data_at_timestamp(
         woeid, trend_id, timestamp_utc
     )
 
