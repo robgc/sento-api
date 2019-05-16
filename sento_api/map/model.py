@@ -55,3 +55,42 @@ async def get_active_locations():
         """,
         fetch_row=True
     )
+
+
+async def get_locations_by_trend(trend_id):
+    return await execute_fetch_query(
+        """
+        WITH filtered_locations as (
+          SELECT DISTINCT
+            woeid
+          FROM
+            data.rankings
+          WHERE
+            topic_id = $1
+        ), filtered_locations_as_geojson as (
+          SELECT
+            jsonb_build_object(
+              'type', 'Feature',
+              'id', locs.id,
+              'geometry', ST_AsGeoJSON(locs.the_geom_point)::jsonb,
+              'properties', json_build_object(
+                'name', locs.name,
+                'osm_name', locs.osm_name
+              )
+            ) AS feature
+          FROM
+            filtered_locations fl
+            JOIN data.locations locs ON fl.woeid = locs.id
+        )
+
+        SELECT
+          jsonb_build_object(
+            'type', 'FeatureCollection',
+            'features', jsonb_agg(feature)
+          )
+        FROM
+          filtered_locations_as_geojson
+        """,
+        trend_id,
+        fetch_row=True
+    )

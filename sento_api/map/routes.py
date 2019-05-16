@@ -13,9 +13,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from starlette.responses import PlainTextResponse
 from starlette.routing import Router
-from starlette.responses import JSONResponse, PlainTextResponse
+
 from sento_api.map import model
+from sento_api import utils
 
 app = Router()
 
@@ -24,3 +26,14 @@ app = Router()
 async def active_locations(request):
     query_results = await model.get_active_locations()
     return PlainTextResponse(query_results[0], media_type='application/json')
+
+
+@app.route('/{trend_id}')
+async def locations_by_trend(request):
+    trend_id, trend_err_resp = await utils.process_req_trend(request)
+    if trend_err_resp:
+        return trend_err_resp
+
+    locations_data = await model.get_locations_by_trend(trend_id)
+
+    return PlainTextResponse(locations_data[0], media_type='application/json')
