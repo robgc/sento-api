@@ -95,6 +95,37 @@ async def get_trends_evolution_in_location(woeid):
     )
 
 
+async def get_trend_evolution_in_all_locations(trend_id):
+    return await execute_fetch_query(
+        """
+        WITH evolution_by_location AS (
+          SELECT
+            woeid,
+            json_agg(
+              json_build_object(
+                'timestamp', to_char(ranking_ts, 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+                'position', ranking_no
+              )
+              ORDER BY ranking_ts ASC
+            ) AS "location_evolution"
+          FROM
+            data.rankings rankings
+          WHERE
+            topic_id = $1
+          GROUP BY
+            woeid
+        )
+
+        SELECT
+          locations.name AS "location",
+          evolution.location_evolution AS "evolution"
+        FROM
+          evolution_by_location evolution
+          JOIN data.locations locations ON evolution.woeid = locations.id;
+        """,
+        trend_id)
+
+
 async def get_trend_evolution_in_location(trend_id, woeid):
     return await execute_fetch_query(
         """

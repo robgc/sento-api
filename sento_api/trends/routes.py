@@ -55,7 +55,21 @@ async def get_trends_evolution_in_location(request):
     )
 
 
-@app.route('/evolution/{woeid:int}/{trend_id}')
+@app.route('/evolution/{trend_id}')
+async def get_trend_evolution_in_all_locations(request):
+    trend_id, trend_err_resp = await utils.process_req_trend(request)
+    if trend_err_resp:
+        return trend_err_resp
+
+    evol_rows = await model.get_trend_evolution_in_all_locations(trend_id)
+
+    return JSONResponse(
+        [dict(location=row[0], evolution=json.loads(row[1]))
+         for row in evol_rows]
+    )
+
+
+@app.route('/evolution/{trend_id}/{woeid:int}')
 async def get_trend_evolution_in_location(request):
     woeid, err_resp = await utils.process_req_woeid(request)
     if err_resp:
