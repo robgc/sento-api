@@ -28,12 +28,14 @@ app = Starlette(debug=app_settings.DEBUG_MODE)
 
 app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'])
 
-app.mount('/map', map_routes)
-app.mount('/trends', trends_routes)
-app.mount('/reports', reports_routes)
+base_path = '/api/v1'
+
+app.mount(f'{base_path}/map', map_routes)
+app.mount(f'{base_path}/trends', trends_routes)
+app.mount(f'{base_path}/reports', reports_routes)
 
 
-@app.route('/')
+@app.route(f'{base_path}')
 def index(request):
     return PlainTextResponse('Sento API v1')
 
