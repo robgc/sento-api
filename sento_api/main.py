@@ -41,4 +41,8 @@ def index(request):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host='0.0.0.0', port=3000)
+    uvicorn.run(
+        app,
+        host=app_settings.LISTEN_HOST,
+        port=app_settings.LISTEN_PORT
+    )

@@ -32,10 +32,6 @@ class Config:
         parser.read(config_path)
 
         # Config file
-        # Logging
-        self.LOGGING_LEVEL = parser['logging'].get('level')
-        self.ASYNCIO_LOGGING_LEVEL = parser['logging'].get('asyncioLevel')
-        self.LOGGING_OUTPUT = parser['logging'].get('output')
 
         # Postgres
         self.POSTGRES_HOST = parser['postgres'].get('host', 'postgres')
@@ -46,6 +42,8 @@ class Config:
 
         # API config
         self.DEBUG_MODE = parser['api'].getboolean('debug', False)
+        self.LISTEN_HOST = parser['api'].getboolean('host', 'localhost')
+        self.LISTEN_PORT = parser['api'].getboolean('port', 3000)
 
 
 def get_config():

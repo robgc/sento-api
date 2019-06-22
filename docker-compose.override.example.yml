@@ -1,0 +1,22 @@
+version: "3.5"
+
+# This file can override or add some values to the Docker Compose config found in
+# `docker-compose.yml`. You should only need to change the listening port of the API container,
+# but you also have example values for other configurations.
+# Check https://docs.docker.com/compose/extends/ for more info.
+# Remember that this file must be copied an renamed as `docker-compose.override.yml` in order
+# to apply your overrides to the `docker-compose.yml` file.
+
+services:
+  # Uncomment the following section if you wish to map the PostgreSQL container listening port
+  # to a port in your host.
+
+  # sento-db:
+  #   ports:
+  #     - "5432:5432"  # HOST:CONTAINER
+
+  sento-api:
+    ports:
+      # Leave as it is if you have not changed the example values in your `config.ini` file.
+      # Otherwise modify it according to your needs.
+      - "3000:3000"  # HOST:COTAINER

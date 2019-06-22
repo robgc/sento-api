@@ -1,18 +1,16 @@
 version: "3.5"
 
 services:
-  postgres:
+  sento-db:
     container_name: sento-db
     image: geographica/postgis:spry_sparrow
     restart: unless-stopped
     volumes:
       - sento-data:/data
-      - ./sento_api/database/init.sql:/src/init.sql
+      - ./sento_api/database/init.sql:/src/init.sql:ro
     env_file: db.env
     networks:
-      sento-net:
-        aliases:
-          - sento-db
+      - sento-net
 
   sento-api:
     container_name: sento-api

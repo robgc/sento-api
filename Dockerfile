@@ -17,7 +17,7 @@ FROM python:3.7.3-alpine3.9
 
 WORKDIR /usr/src/app
 
-ENV PYTHONPATH=${PYTHONPATH}:/home/robert/development/sento/sento-api
+ENV PYTHONPATH=${PYTHONPATH}:/usr/src/app
 
 COPY Pipfile /usr/src/app
 COPY Pipfile.lock /usr/src/app
@@ -32,4 +32,4 @@ RUN set -x \
 
 COPY . /usr/src/app
 
-CMD [ "pipenv", "run", "sento_api/main.py" ]
+CMD [ "pipenv", "run", "python", "sento_api/main.py" ]

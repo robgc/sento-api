@@ -110,3 +110,4 @@ venv.bak/
 # Project specific
 db.env
 config.ini
+docker-compose.override.yml
