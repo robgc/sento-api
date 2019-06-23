@@ -42,8 +42,8 @@ class Config:
 
         # API config
         self.DEBUG_MODE = parser['api'].getboolean('debug', False)
-        self.LISTEN_HOST = parser['api'].getboolean('host', 'localhost')
-        self.LISTEN_PORT = parser['api'].getboolean('port', 3000)
+        self.LISTEN_HOST = parser['api'].get('host', 'localhost')
+        self.LISTEN_PORT = parser['api'].get('port', 3000)
 
 
 def get_config():
